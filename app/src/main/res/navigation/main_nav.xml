@@ -33,14 +33,23 @@
         tools:layout="@layout/fragment_game" >
         <action
             android:id="@+id/action_gameFragment_to_mainFragment"
-            app:destination="@id/mainFragment" />
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true"/>
         <action
             android:id="@+id/action_gameFragment_to_winFragment"
-            app:destination="@id/winFragment" />
+            app:destination="@id/winFragment"
+            app:popUpTo="@id/mainFragment"/>
     </fragment>
     <fragment
         android:id="@+id/winFragment"
         android:name="com.example.exam4.WinFragment"
         android:label="fragment_win"
-        tools:layout="@layout/fragment_win" />
+        tools:layout="@layout/fragment_win" >
+        <action
+            android:id="@+id/action_winFragment_to_mainFragment"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
 </navigation>

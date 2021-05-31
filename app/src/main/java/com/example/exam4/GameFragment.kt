@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
@@ -41,6 +43,7 @@ class GameFragment : Fragment() {
                         items[i].add(CaseState.empty)
                 }
             }
+
             GameMode.medium -> {
                 for (i in 0..3) {
                     items.add(mutableListOf<CaseState>())
@@ -58,31 +61,83 @@ class GameFragment : Fragment() {
         }
 
         adapter = GameAdapter(items) { pos, btnBox ->
+            var i = pos / items.size
+            var j = pos % items.size
             if (firstPlayerTurn) {
-                btnBox.setBackgroundResource(R.drawable.outline_close_24)
+                btnBox.setImageResource(R.drawable.outline_close_black_48)
+                btnBox.scaleType = ImageView.ScaleType.CENTER
+                items[i][j] = CaseState.x
                 firstPlayerTurn = false
-            }
-            else {
-                btnBox.setImageResource(R.drawable.outline_exposure_zero_24)
+            } else {
+                btnBox.setImageResource(R.drawable.outline_exposure_zero_black_48)
+                btnBox.scaleType = ImageView.ScaleType.CENTER
+                items[i][j] = CaseState.o
                 firstPlayerTurn = true
             }
 
             btnBox.isClickable = false
-
-            d("position", pos.toString())
+            var winner = check()
+            if (winner != CaseState.empty) {
+                findNavController().navigate(
+                    R.id.action_gameFragment_to_winFragment,
+                    bundleOf("winner" to winner)
+                )
+            }
         }
         binding!!.rvGame.layoutManager = GridLayoutManager(requireContext(), items.size)
         binding!!.rvGame.adapter = adapter
     }
 
-    private fun check() {
-        var win = false
-        items.forEach{ pos ->
-            if(pos.all{
-                it == CaseState.x
-                })
-                    findNavController().navigate()
-        }
-    }
+    private fun check(): CaseState {
+        var win = true
+        var winner = CaseState.empty
 
+        items.forEach { list ->
+            if (list[0] != CaseState.empty)
+                if (list.all {
+                        it == list[0]
+                    })
+                    return list[0]
+        }
+
+        for (i in 0 until items.size) {
+            win = true
+            winner = items[0][i]
+            if (winner != CaseState.empty)
+                for (j in 0 until items.size)
+                    if (winner != items[j][i]) {
+                        win = false
+                        break
+                    }
+        }
+        if (win && winner != CaseState.empty)
+            return winner
+
+
+        if (items[0][0] != CaseState.empty) {
+            win = true
+            for (i in 0 until items.size) {
+                if (items[i][i] != items[0][0])
+                    win = false
+            }
+            if (win)
+                return items[0][0]
+        }
+
+
+        if (items[0][items.size - 1] != CaseState.empty) {
+            win = true
+            for (i in items.size - 1 downTo 0) {
+                if (items[items.size - i - 1][i] != items[0][items.size - 1])
+                    win = false
+            }
+            if (win)
+                return items[0][items.size - 1]
+        }
+
+        if(items.all { row -> row.all { it != CaseState.empty } })
+            findNavController().navigate(R.id.action_gameFragment_to_winFragment, bundleOf("winner" to CaseState.empty))
+
+        return CaseState.empty
+    }
 }
